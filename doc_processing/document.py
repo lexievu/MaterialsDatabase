@@ -220,7 +220,7 @@ class Doc:
             sentences = self.find_sentences(keywords=keywords, text=text, material_in_sentence=material_in_sentence)  # , material)
 
             # If it's an Elsevier file, remove the weird long sentence at the start
-            if self.isElsevier():
+            if self.is_elsevier():
                 # isElsevier is defined in ElsevierDoc (in elsevier_doc.py file)
                 sentences = [s for s in sentences if len(s) < 1100]
 
@@ -319,7 +319,7 @@ class Doc:
             sentences = self.find_sentences(keywords, material)
 
             # If it's an Elsevier file, remove the weird long sentence at the start
-            if self.isElsevier():
+            if self.is_elsevier():
                 sentences = [s for s in sentences if len(s) < 1500]
 
             if write == 'y':
@@ -526,7 +526,7 @@ class Doc:
             sentences = self.find_sentences(keywords, material)
 
             # If it's an Elsevier file, remove the weird long sentence at the start
-            if self.isElsevier():
+            if self.is_elsevier():
                 sentences = [s for s in sentences if len(s) < 1500]
 
             if write == 'y':

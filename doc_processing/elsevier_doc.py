@@ -6,6 +6,10 @@ Created on Mon Jul 15 10:43:40 2019
 ElsevierDoc, which is a subclass of Doc
 
 @author: thv20
+
+To import this file, call
+
+>>> from doc_processing.elsevier_doc import ElsevierDoc
 """
 
 from doc_processing.document import *

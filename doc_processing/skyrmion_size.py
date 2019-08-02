@@ -4,11 +4,19 @@
 Created on Tue Jul  9 10:53:33 2019
 
 @author: thv20
+
+To import all functions in this file, call
+
+>>> import doc_processing.skyrmion_size as sks
+
+Then to call a function (e.g. find_size), call
+
+>>> sks.find_size('The skyrmion size in the material is between 50 and 100 nm.')
+OUT: [' 50 and 100 nm.']
 """
 
 import re
 import numpy as np
-import collections
 
 SKYRMION_SIZE_UNITS = ['Å', 'Angstrom', 'nm', 'μm', 'um', 'μ m']
 
@@ -148,6 +156,7 @@ def convert_to_Angstrom(text, roundto=2):
     :return: numpy array of float
 
     Example:
+    >>> from doc_processing.skyrmion_size import convert_to_Angstrom
     >>> convert_to_Angstrom(' 100 nm ')
     OUT: array([1000.])
     >>> convert_to_Angstrom(' 100 km ')

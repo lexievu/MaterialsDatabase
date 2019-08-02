@@ -4,11 +4,19 @@
 Created on Tue Jul  2 14:42:53 2019
 
 @author: thv20
+
+Import the file
+
+>>> import doc_processing.temperature as tmp
+>>> tmp.find_temperature('The Curie temperature of the material is 400 K.')
+OUT: [' 400 K.']
 """
 
 import re
 import numpy as np
 import collections
+
+TEMPERATURE_UNITS = ['K', 'C', 'F']
 
 def find_temperature (text, unit = 'K'): 
     """
@@ -16,6 +24,12 @@ def find_temperature (text, unit = 'K'):
     :param: unit: string: default to 'K'
     
     :return: list of strings of temperature
+
+    Example:
+
+    >>> from doc_processing.temperature import find_temperature
+    >>> find_temperature('The Curie temperature of the material is 400 K.')
+    OUT: [' 400 K.']
     """
     if unit == 'K':
         return re.findall(u'\W\d*[.,]?\d*[ ]?[±]?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|'\
@@ -26,10 +40,9 @@ def find_temperature (text, unit = 'K'):
     else: 
         return re.findall(u'\W\d+[.,]?\d*.?K\W|\W\d+[.,]?\d*.{0,2}C\W|\W\d+[.,]?\d*.{0,2}F\W', text)
 
-def get_number(text): 
-    #print(len(re.findall('\d+[.]?\d*', text)) > 0)
+def get_number(text):
     if len(re.findall('\d+[.,]?\d*', text)) > 0:
-        text = text.replace(',','.')#.replace('-','.')
+        text = text.replace(',', '.')
         if '±' in text: 
             return np.array([float(''.join(re.findall('\d+[.,]?\d*', text)[0]))])
         elif 'and' in text or 'to' in text or '-' in text:
