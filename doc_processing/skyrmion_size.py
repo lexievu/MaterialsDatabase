@@ -123,25 +123,24 @@ def convert_to_nm(text, roundto=2):
 
     Example:
     >>> convert_to_nm(' 70 km ')
-    OUT: ValueError: Initial unit  km is not recognised
+    OUT: ValueError: ('Initial unit  km is not recognised',
+                      'SKYRMION_SIZE_UNITS', ['Å', 'Angstrom', 'nm', 'μm', 'um', 'μ m'])
     """
     if get_unit(text) == 'nm':
         number = get_number(text)  # 1 nm = 1 nm
-        unit = 'nm'
         return np.round(number, roundto)
-    elif get_unit(text) == 'μm' or get_unit(text) == 'um':
+    elif get_unit(text) == 'μm' or get_unit(text) == 'um' or get_unit(text) == 'μ m':
         number = get_number(text) * 1000  ## 1 micron = 1000 nm
-        unit = 'nm'
         return np.round(number, roundto)
     elif get_unit(text) == 'Å' or get_unit(text) == 'Angstrom':
         number = get_number(text) * 0.1  ## 1 Angstrom = 0.1 nm
-        unit = 'nm'
         return np.round(number, roundto)
     else:
-        raise ValueError('Initial unit  ' + get_unit(text) + ' is not recognised')
+        raise ValueError('Initial unit  ' + get_unit(text) + ' is not recognised',
+                         'SKYRMION_SIZE_UNITS', SKYRMION_SIZE_UNITS)
 
 
-def convert_nm_to_Angstrom(text, roundto=2):
+def convert_to_Angstrom(text, roundto=2):
     """
     This function only convert nm to Angstrom
     :param text: string
@@ -149,14 +148,19 @@ def convert_nm_to_Angstrom(text, roundto=2):
     :return: numpy array of float
 
     Example:
-    >>> convert_nm_to_Angstrom(' 100 nm ')
+    >>> convert_to_Angstrom(' 100 nm ')
     OUT: array([1000.])
+    >>> convert_to_Angstrom(' 100 km ')
+    OUT: ValueError: ('Initial unit is not recognised.
+                       SKYRMION_SIZE_UNITS = ', ['Å', 'Angstrom', 'nm', 'μm', 'um', 'μ m'])
     """
     if get_unit(text) == 'Å':
         return get_number(text)
-    elif get_unit(text) != 'nm':
-        raise ValueError('Initial unit is not nm')
-    else:
+    elif get_unit(text) == 'nm':
         number = get_number(text) * 10  ## 1 nm = 10 Angstrom
-        unit = 'Å'
         return np.round(number, roundto)
+    elif get_unit(text) == 'um' or get_unit(text) == 'μm' or get_unit(text) == 'μ m':
+        number = get_number(text) * 10000  ## 1 um = 10,000 Angstrom
+        return np.round(number, roundto)
+    else:
+        raise ValueError('Initial unit is not recognised. SKYRMION_SIZE_UNITS = ', SKYRMION_SIZE_UNITS)

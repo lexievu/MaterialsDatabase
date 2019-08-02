@@ -31,6 +31,8 @@ This folder contains code pertaining to
 
 ## Thanks to 
 
+**David Cortes-Ortuño, Sam Holt** for contributing
+
 **Magdalene College, Cambridge** for providing the bursary necessary for the completion of the project; 
 
 **J. C. Loudon** for the opportunity and guidance;
