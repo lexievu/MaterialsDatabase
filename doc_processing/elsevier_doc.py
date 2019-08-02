@@ -8,13 +8,16 @@ ElsevierDoc, which is a subclass of Doc
 @author: thv20
 """
 
-from document import *
+from doc_processing.document import *
 from datetime import date
 
 
 class ElsevierDoc(Doc):
-    
     def __init__(self, elsapy_data):
+        """
+        Create an ElsevierDoc object, which is a subclass of Doc
+        :param elsapy_data: elsapy.Elsentity object
+        """
         self.elsapy_data = elsapy_data
         if 'originalText' in self.elsapy_data.keys():
             if type(self.elsapy_data['originalText']) != dict:
@@ -46,8 +49,8 @@ class ElsevierDoc(Doc):
                 self.coverDate = self.elsapy_data['coredata']['prism:coverDate']
         self.accessDate = str(date.today())
 
-    def isElsevier(self):
+    def is_elsevier(self):
         return True
-    
-    def isSpringer(self):
+
+    def is_springer(self):
         return False
