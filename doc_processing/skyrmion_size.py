@@ -19,14 +19,20 @@ def find_size (text, units = SKYRMION_SIZE_UNITS):
         list of strings: the mentions of size in text
     """
     
-    base_pattern = '\W\d+[.]?\d*.?'
+    base_pattern = '\W\d+[.]?\d*[^A-Za-z0-9μ]?'
     pattern = u''
     for i in range(len(units)): 
         if i < len(units) - 1:
             pattern = pattern + base_pattern + units[i] + '\W|'
         else: 
             pattern = pattern + base_pattern + units[i] + '\W'
-        
+
+    #return re.findall(u'\W\d*[.,]?\d*[ ]?[±]?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|'\
+    #                      '\W\d*[.,]?\d*[ ]?and?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|'\
+    #                      '\W\d*[.,]?\d*[ ]?to?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|' \
+    #                      '\W\d*[.,]?\d*[ ]?–?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|' \
+    #                     '\W\d*[.,]?\d*[ ]?[-]?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]', text)
+    print(pattern)
     return re.findall(pattern, text)
 
 def get_number(text):
