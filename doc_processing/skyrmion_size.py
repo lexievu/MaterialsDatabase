@@ -8,9 +8,10 @@ Created on Tue Jul  9 10:53:33 2019
 
 import re
 
-SKYRMION_SIZE_UNITS = ['Å','nm', 'μm', 'um', 'μ m']
+SKYRMION_SIZE_UNITS = ['Å', 'nm', 'μm', 'um', 'μ m']
 
-def find_size (text, units = SKYRMION_SIZE_UNITS):
+
+def find_size(text, units=SKYRMION_SIZE_UNITS):
     """
     Input:
         text (string)
@@ -18,62 +19,59 @@ def find_size (text, units = SKYRMION_SIZE_UNITS):
     Output:
         list of strings: the mentions of size in text
     """
-    
-    base_pattern = '\W\d+[.]?\d*[^A-Za-z0-9μ]?'
+
+    base_pattern = '\W\d*[.]?\d*(?:[ ]?and[ ]?|[ ]?to[ ]?|[ ]?±[ ]?|[ ]?-[ ]?|[ ]?–[ ]?|)?\d+[.]?\d*[^A-Za-z0-9μ]?'
     pattern = u''
-    for i in range(len(units)): 
+    for i in range(len(units)):
         if i < len(units) - 1:
             pattern = pattern + base_pattern + units[i] + '\W|'
-        else: 
+        else:
             pattern = pattern + base_pattern + units[i] + '\W'
-
-    #return re.findall(u'\W\d*[.,]?\d*[ ]?[±]?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|'\
-    #                      '\W\d*[.,]?\d*[ ]?and?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|'\
-    #                      '\W\d*[.,]?\d*[ ]?to?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|' \
-    #                      '\W\d*[.,]?\d*[ ]?–?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]|' \
-    #                     '\W\d*[.,]?\d*[ ]?[-]?[ ]?\d+[.,]?\d*.?K[^/A-Za-z0-9]', text)
-    print(pattern)
     return re.findall(pattern, text)
+
 
 def get_number(text):
     if len(re.findall('\d+[.,-]?\d*', text)) > 0:
-        text = text.replace(',','.').replace('-','.')
-        if '±' in text: 
+        text = text.replace(',', '.').replace('-', '.')
+        if '±' in text:
             return float(''.join(re.findall('\d+[.,]?\d*', text)[0]))
         else:
             return float(''.join(re.findall('\d+[.,]?\d*', text)))
-    else: 
+    else:
         return None
 
-def get_unit(text, units = SKYRMION_SIZE_UNITS): 
-    for u in units: 
-        if u in text: 
+
+def get_unit(text, units=SKYRMION_SIZE_UNITS):
+    for u in units:
+        if u in text:
             return u
-    
+
     return [x[:-1] for x in re.findall('\D+\Z', text)][0]
 
-def convert_to_nm(text, roundto = 2): 
+
+def convert_to_nm(text, roundto=2):
     if get_unit(text) == 'nm':
-        number = get_number(text) # 1 nm = 1 nm
+        number = get_number(text)  # 1 nm = 1 nm
         unit = 'nm'
         return (str(round(number, roundto)))
     elif get_unit(text) == 'μm':
-        number = get_number(text)*1000 ## 1 micron = 1000 nm
+        number = get_number(text) * 1000  ## 1 micron = 1000 nm
         unit = 'nm'
         return (str(round(number, roundto)))
-    elif get_unit(text) == 'Å': 
-        number = get_number(text)*0.1 ## 1 Angstrom = 0.1 nm
+    elif get_unit(text) == 'Å':
+        number = get_number(text) * 0.1  ## 1 Angstrom = 0.1 nm
         unit = 'nm'
         return (str(round(number, roundto)))
-    else: 
+    else:
         raise ValueError('Initial unit  ' + get_unit(text) + ' is not recognised')
-    
-def convert_nm_to_Angstrom(text, roundto = 2):
+
+
+def convert_nm_to_Angstrom(text, roundto=2):
     if get_unit(text) == 'Å':
-        return text 
-    elif get_unit(text) != 'nm': 
+        return text
+    elif get_unit(text) != 'nm':
         raise ValueError('Initial unit is not nm')
-    else: 
-        number = get_number(text)*10 ## 1 nm = 10 Angstrom 
+    else:
+        number = get_number(text) * 10  ## 1 nm = 10 Angstrom
         unit = 'Å'
-        return (str(round(number, roundto))+unit)
+        return (str(round(number, roundto)) + unit)
