@@ -14,11 +14,13 @@ SKYRMION_SIZE_UNITS = ['Å', 'Angstrom', 'nm', 'μm', 'um', 'μ m']
 
 def find_size(text, units=SKYRMION_SIZE_UNITS):
     """
-    Input:
-        text (string)
-        units (list of strings): units that are used for skyrmion size
-    Output:
-        list of strings: the mentions of size in text
+    :param: text (string)
+    :param: units (list of strings): units that are used for skyrmion size
+    :return: list of strings: the mentions of size in text
+
+    >>> from doc_processing.skyrmion_size import find_size
+    >>> find_size('The skyrmion size in the material is between 50 and 100 nm.')
+    OUT: [' 50 and 100 nm.']
     """
 
     base_pattern = '\W\d*[.]?\d*(?:[ ]?and[ ]?|[ ]?to[ ]?|[ ]?±[ ]?|[ ]?-[ ]?|[ ]?–[ ]?|)?\d+[.]?\d*[^A-Za-z0-9μ]?'
