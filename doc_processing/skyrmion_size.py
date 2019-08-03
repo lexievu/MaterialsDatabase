@@ -70,7 +70,7 @@ def get_number(text):
         return None
 
 
-def get_number_from_list(alist, normalized_unit=None, roundto=2):
+def get_number_from_list(alist, normalized_unit=None, roundto=None):
     """
     Return an array of numbers from a list of strings
     :param alist: list of strings
@@ -102,9 +102,9 @@ def get_number_from_list(alist, normalized_unit=None, roundto=2):
     result = np.array([])
     for el in alist:
         if normalized_unit == 'nm':
-            result = np.append(result, convert_to_nm(el))
+            result = np.append(result, convert_to_nm(el, roundto=roundto))
         elif normalized_unit == 'A' or normalized_unit == 'Angstrom' or normalized_unit == 'Å':
-            result = np.append(result, convert_to_angstrom(el))
+            result = np.append(result, convert_to_angstrom(el, roundto=roundto))
         elif normalized_unit is None:
             result = np.append(result, get_number(el))
         else:
@@ -151,11 +151,12 @@ def get_unit(text, units=None):
             return None
 
 
-def convert_to_nm(text, roundto=2):
+def convert_to_nm(text, roundto=None):
     """
     This function converts a recognised unit of length to nm
     :param text: string
-    :param roundto: integer, to what decimal place should the result be rounded to
+    :param roundto: None or int, to what decimal place should the result be rounded to
+                    If not specified, the result will not be rounded.
     :return: str
 
     Example:
@@ -176,23 +177,25 @@ def convert_to_nm(text, roundto=2):
     """
     if get_unit(text) == 'nm':
         number = get_number(text)  # 1 nm = 1 nm
-        return np.round(number, roundto)
     elif get_unit(text) == 'μm' or get_unit(text) == 'um' or get_unit(text) == 'μ m':
         number = get_number(text) * 1000  ## 1 micron = 1000 nm
-        return np.round(number, roundto)
     elif get_unit(text) == 'Å' or get_unit(text) == 'Angstrom':
         number = get_number(text) * 0.1  ## 1 Angstrom = 0.1 nm
-        return np.round(number, roundto)
     else:
         raise ValueError('Initial unit  ' + get_unit(text) + ' is not recognised',
                          'SKYRMION_SIZE_UNITS', SKYRMION_SIZE_UNITS)
 
+    if roundto is None:
+        return number
+    else:
+        return np.round(number, roundto)
 
-def convert_to_angstrom(text, roundto=2):
+
+def convert_to_angstrom(text, roundto=None):
     """
     This function only convert nm to Angstrom
     :param text: string
-    :param roundto: int
+    :param roundto: None or int. If not specified, the number will not be rounded.
     :return: numpy array of float
 
     Example:
@@ -204,12 +207,15 @@ def convert_to_angstrom(text, roundto=2):
                        SKYRMION_SIZE_UNITS = ', ['Å', 'Angstrom', 'nm', 'μm', 'um', 'μ m'])
     """
     if get_unit(text) == 'Å':
-        return get_number(text)
+        number = get_number(text)
     elif get_unit(text) == 'nm':
         number = get_number(text) * 10  ## 1 nm = 10 Angstrom
-        return np.round(number, roundto)
     elif get_unit(text) == 'um' or get_unit(text) == 'μm' or get_unit(text) == 'μ m':
         number = get_number(text) * 10000  ## 1 um = 10,000 Angstrom
-        return np.round(number, roundto)
     else:
         raise ValueError('Initial unit is not recognised. SKYRMION_SIZE_UNITS = ', SKYRMION_SIZE_UNITS)
+
+    if roundto is None:
+        return number
+    else:
+        return np.round(number, roundto)
