@@ -16,20 +16,26 @@ OUT: [' 50 and 100 nm.']
 """
 
 import re
+
 import numpy as np
 
 SKYRMION_SIZE_UNITS = ['Å', 'Angstrom', 'nm', 'μm', 'um', 'μ m']
 
-def find_size(text, units=SKYRMION_SIZE_UNITS):
+
+def find_size(text, units=None):
     """
     :param: text (string)
-    :param: units (list of strings): units that are used for skyrmion size
+    :param: units (None or list of strings): units that are used for skyrmion size
+                  If not specified, units is set to SKYRMION_SIZE_UNITS
     :return: list of strings: the mentions of size in text
 
     >>> from doc_processing.skyrmion_size import find_size
     >>> find_size('The skyrmion size in the material is between 50 and 100 nm.')
     OUT: [' 50 and 100 nm.']
     """
+
+    if units is None:
+        units = SKYRMION_SIZE_UNITS
 
     base_pattern = '\W\d*[.]?\d*(?:[ ]?and[ ]?|[ ]?to[ ]?|[ ]?±[ ]?|[ ]?-[ ]?|[ ]?–[ ]?|)?\d+[.]?\d*[^A-Za-z0-9μ]?'
     pattern = u''
@@ -63,27 +69,57 @@ def get_number(text):
     else:
         return None
 
-def get_number_from_list(alist):
+
+def get_number_from_list(alist, normalized_unit=None, roundto=2):
     """
     Return an array of numbers from a list of strings
     :param alist: list of strings
+    :param normalized_unit: None or str
+                            Allowed input: None, nm, A, Å, Angstrom
+                            If not specified, normalized_unit is set to None
+    :param roundto: int
+                    Arguments passed to convert_to_nm and convert_to_angstrom
+                    If not specified, roundto is set to 2
     :return: numpy array of number
 
     Example:
     >>> from doc_processing.skyrmion_size import get_number_from_list
     >>> get_number_from_list(['100 to 200 nm', '50 um'])
     Out: array([100., 200.,  50.])
+
+    >>> get_number_from_list(['100 to 200 nm', '50 um'], normalized_unit='nm')
+    Out: array([  100.,   200., 50000.])
+
+    However, if the input has a unit that is not recognised, the function will raise an error
+    >>> get_number_from_list(['100 to 200 nm', '50 km'], normalized_unit='nm')
+    ValueError: ('Initial unit  k is not recognised', 'SKYRMION_SIZE_UNITS', ['Å', 'Angstrom', 'nm', 'μm', 'um', 'μ m'])
+
+    An error would also be raised if the normalized_unit is not recognised
+    >>> get_number_from_list(['100 to 200 nm', '50 um'], normalized_unit='km')
+    ValueError: Unit 'km' is not recognised. The only recognised inputs for normalized_unit are 'nm', 'A', 'Å' and
+               'Angstrom'.
     """
     result = np.array([])
     for el in alist:
-        result = np.append(result, get_number(el))
+        if normalized_unit == 'nm':
+            result = np.append(result, convert_to_nm(el))
+        elif normalized_unit == 'A' or normalized_unit == 'Angstrom' or normalized_unit == 'Å':
+            result = np.append(result, convert_to_angstrom(el))
+        elif normalized_unit is None:
+            result = np.append(result, get_number(el))
+        else:
+            raise ValueError('Unit \'' + normalized_unit + '\' is not recognised. The only recognised inputs '
+                                                           'for normalized_unit are \'nm\', \'A\', '
+                                                           '\'Å\' and \'Angstrom\'.')
     return result
 
-def get_unit(text, units=SKYRMION_SIZE_UNITS):
+
+def get_unit(text, units=None):
     """
     Return a string (the unit), given a string
     :param text: string
-    :param units: units to look from.
+    :param units: None or list of string
+                  units to look from.
                   If not specified, the units are set to those in SKYRMION_SIZE_UNITS list on top of this file
                   If the string does not contain any unit specified, it will make a guess of the unit
     :return: string, which should be the unit
@@ -95,6 +131,10 @@ def get_unit(text, units=SKYRMION_SIZE_UNITS):
     >>> get_unit(' 70 km ')
     Out: 'km'
     """
+
+    if units is None:
+        units = SKYRMION_SIZE_UNITS
+
     pattern = ''
     for u in units:
         if u == units[0]:
@@ -148,7 +188,7 @@ def convert_to_nm(text, roundto=2):
                          'SKYRMION_SIZE_UNITS', SKYRMION_SIZE_UNITS)
 
 
-def convert_to_Angstrom(text, roundto=2):
+def convert_to_angstrom(text, roundto=2):
     """
     This function only convert nm to Angstrom
     :param text: string
@@ -156,10 +196,10 @@ def convert_to_Angstrom(text, roundto=2):
     :return: numpy array of float
 
     Example:
-    >>> from doc_processing.skyrmion_size import convert_to_Angstrom
-    >>> convert_to_Angstrom(' 100 nm ')
+    >>> from doc_processing.skyrmion_size import convert_to_angstrom
+    >>> convert_to_angstrom(' 100 nm ')
     OUT: array([1000.])
-    >>> convert_to_Angstrom(' 100 km ')
+    >>> convert_to_angstrom(' 100 km ')
     OUT: ValueError: ('Initial unit is not recognised.
                        SKYRMION_SIZE_UNITS = ', ['Å', 'Angstrom', 'nm', 'μm', 'um', 'μ m'])
     """
