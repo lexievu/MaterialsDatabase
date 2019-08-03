@@ -4,45 +4,55 @@
 Created on Fri Jul 12 17:12:52 2019
 
 @author: thv20
+
+To import function in file
+>>> import doc_processing.chemicals as ch
+>>> ch.find_chemical('MnSi orders below T c =29.6K [11] helimagnetically.')
+Out: ['MnSi']
 """
 
-import re
 import collections
-from mat2vec.processing.process import MaterialsTextProcessor
-from pymatgen.core.periodic_table import Element
-from pymatgen.core.composition import Composition, CompositionError
-import numpy as np
-import os
 import csv
+import os
+import re
+
+import numpy as np
 import pandas as pd
-import copy
+from mat2vec.processing.process import MaterialsTextProcessor
+from pymatgen.core.composition import Composition
 
 # The following units are not accepted as chemical formulae
-SPLIT_UNITS = ["K", "h", "V", "wt", "wt.", "MHz", "kHz", "GHz", "Hz", "days", "weeks",
-               "hours", "minutes", "seconds", "T", "MPa", "GPa", "at.", "mol.",
-               "at", "m", "N", "s-1", "vol.", "vol", "eV", "A", "atm", "bar",
-               "kOe", "Oe", "h.", "mWcm−2", "keV", "MeV", "meV", "day", "week", "hour",
-               "minute", "month", "months", "year", "cycles", "years", "fs", "ns",
-               "ps", "rpm", "g", "mg", "mAcm−2", "mA", "mK", "mT", "s-1", "dB",
-               "Ag-1", "mAg-1", "mAg−1", "mAg", "mAh", "mAhg−1", "m-2", "mJ", "kJ",
-               "m2g−1", "THz", "KHz", "kJmol−1", "Torr", "gL-1", "Vcm−1", "mVs−1",
-               "J", "GJ", "mTorr", "bar", "cm2", "mbar", "kbar", "mmol", "mol", "molL−1",
-               "MΩ", "Ω", "kΩ", "mΩ", "mgL−1", "moldm−3", "m2", "m3", "cm-1", "cm",
-               "Scm−1", "Acm−1", "eV−1cm−2", "cm-2", "sccm", "cm−2eV−1", "cm−3eV−1",
-               "kA", "s−1", "emu", "L", "cmHz1", "gmol−1", "kVcm−1", "MPam1",
-               "cm2V−1s−1", "Acm−2", "cm−2s−1", "MV", "ionscm−2", "Jcm−2", "ncm−2",
-               "Jcm−2", "Wcm−2", "GWcm−2", "Acm−2K−2", "gcm−3", "cm3g−1", "mgl−1",
-               "mgml−1", "mgcm−2", "mΩcm", "cm−2s−1", "cm−2", "ions", "moll−1",
-               "nmol", "psi", "mol·L−1", "Jkg−1K−1", "km", "Wm−2", "mass", "mmHg",
-               "mmmin−1", "GeV", "m−2", "m−2s−1", "Kmin−1", "gL−1", "ng", "hr", "w",
-               "mN", "kN", "Mrad", "rad", "arcsec", "Ag−1", "dpa", "cdm−2",
-               "cd", "mcd", "mHz", "m−3", "ppm", "phr", "mL", "ML", "mlmin−1", "MWm−2",
-               "Wm−1K−1", "Wm−1K−1", "kWh", "Wkg−1", "Jm−3", "m-3", "gl−1", "A−1",
-               "Ks−1", "mgdm−3", "mms−1", "ks", "appm", "ºC", "HV", "kDa", "Da", "kG",
-               "kGy", "MGy", "Gy", "mGy", "Gbps", "μB", "μL", "μF", "nF", "pF", "mF",
-               "A", "Å", "A˚", "μgL−1", "MGOe", "AMFs", "TC", "TN"]
+NOT_CHEMICALS = ["K", "h", "V", "wt", "wt.", "MHz", "kHz", "GHz", "Hz", "days", "weeks",
+                 "T", "MPa", "GPa", "N", "A", "kOe", "Oe", "h.", "mWcm−2", "keV", "MeV", "meV",
+                 "mAcm−2", "mA", "mK", "mT", "s-1", "dB",
+                 "Ag-1", "mAg-1", "mAg−1", "mAg", "mAh", "mAhg−1", "m-2", "mJ", "kJ",
+                 "m2g−1", "THz", "KHz", "kJmol−1", "Torr", "gL-1", "Vcm−1", "mVs−1",
+                 "J", "GJ", "mTorr", "bar", "cm2", "mbar", "kbar", "mmol", "mol", "molL−1",
+                 "MΩ", "Ω", "kΩ", "mΩ", "mgL−1", "moldm−3", "m2", "m3", "cm-1", "cm",
+                 "Scm−1", "Acm−1", "eV−1cm−2", "cm-2", "sccm", "cm−2eV−1", "cm−3eV−1",
+                 "kA", "s−1", "emu", "L", "cmHz1", "gmol−1", "kVcm−1", "MPam1",
+                 "cm2V−1s−1", "Acm−2", "cm−2s−1", "MV", "ionscm−2", "Jcm−2", "ncm−2",
+                 "Jcm−2", "Wcm−2", "GWcm−2", "Acm−2K−2", "gcm−3", "cm3g−1", "mgl−1",
+                 "mgml−1", "mgcm−2", "mΩcm", "cm−2s−1", "cm−2", "ions", "moll−1",
+                 "nmol", "psi", "mol·L−1", "Jkg−1K−1", "km", "Wm−2", "mass", "mmHg",
+                 "mmmin−1", "GeV", "m−2", "m−2s−1", "Kmin−1", "gL−1", "ng", "hr", "w",
+                 "mN", "kN", "Mrad", "rad", "arcsec", "Ag−1", "dpa", "cdm−2",
+                 "mHz", "mL", "ML", "mlmin−1", "MWm−2",
+                 "Wm−1K−1", "Wm−1K−1", "kWh", "Wkg−1", "Jm−3", "m-3", "gl−1", "A−1",
+                 "Ks−1", "mgdm−3", "mms−1", "ks", "appm", "ºC", "HV", "kDa", "Da", "kG",
+                 "kGy", "MGy", "Gy", "mGy", "Gbps", "μB", "μL", "μF", "nF", "pF", "mF",
+                 "A", "Å", "A˚", "μgL−1", "MGOe", "AMFs", "TC", "Tc", "TN", "Tn"]
 
-def find_chemical(text, sorted_dict='n'):
+ELEMENTS = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K",
+            "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",
+            "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",
+            "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb",
+            "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr",
+            "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf",
+            "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og", "Uue"]
+
+
+def find_chemical(text, sorted_dict=False):
     """
     :param: text (str)
     :param: sorted_dict: whether or not the result is returned as a sorted dictionary (sort by frequency)
@@ -54,44 +64,65 @@ def find_chemical(text, sorted_dict='n'):
 
     These limitations are acceptable for the materials that we care about, but this function is
     definitely not general.
+
+    Example:
+    >>> from doc_processing.chemicals import find_chemical
+    >>> find_chemical('MnSi orders below T c =29.6K [11] helimagnetically.')
+    Out: ['MnSi']
+
+    >>> find_chemical('Very recently Mn0.75Fe0.25Si (which is higher than the critical concentration '
+                      'xcr =0.19 for Fe in MnSi to give T c =0K) has been studied in the light of '
+                      'spin fluctuations assisted QPT.')
+    Out: ['Mn0.75Fe0.25Si', 'Fe', 'MnSi']
+
+    >>> find_chemical('Si addition decreases Tc by 17K) to that of Tc from 320K for x=0 to 318K '
+                      'for x=1 of Mn4FeGe3-x Si x in Ref.')
+    Out: ['Si', 'Mn4FeGe3-xSix']
+
+    >>> find_chemical(' Mn. Mn. Mn. MnSi ', sorted_dict=True)
+    Out: OrderedDict([('MnSi', 1), ('Mn', 3)])
     """
     assert type(text) == str, "Input (parameter text) must be of string type."
 
     # The bit of code below try to match to chemicals written in the form Cu 2 OSeO 3
 
-    temp = [x for x in re.findall('[ ]?[(]?[A-Z][a-z()]*[ ]?|\d+[.]?\d*[)]?', text) #+ re.findall('[ ]?\d+[.]?\d*', text)
+    temp = [x for x in re.findall('[ ]?[(]?[A-Z][a-z()]*[ ]?|'
+                                  '(?:\d+[.]?\d*[)]?|[-+]?[xy])', text)
             if not re.search('[a-z]{2}', x)]
-    #print (temp)
 
     beg = 0
-    position = 0 # where the previous word ends
-    temp2 = []
-    for i in range(len(temp)):
+    position = 0  # where the previous word ends
+    temp2 = []  # Eliminates phrases that are either not a chemical element or not a part of a bigger phrase
 
+    for i in range(len(temp)):
+        # If the phrase is found where the previous phrase ends, then add that phrase to the end of the previous phrase
         if text.find(temp[i], beg) == position and position != 0:
-            if i > 0 and len(temp2) > 0:# and not (re.search('\d',temp[i-1]) and re.search('\d', temp[i])):
+            if i > 0 and len(temp2) > 0:  # and not (re.search('\d',temp[i-1]) and re.search('\d', temp[i])):
                 temp2[-1] = (temp2[-1] + temp[i])
                 beg = beg + len(temp[i])
                 position = beg
 
-        elif (i != len(temp) - 1) and (text.find(temp[i], beg) + len(temp[i]) == text.find(temp[i + 1], beg))\
+        # If the phrase ends where the next phrase starts, then add the phrase to temp2
+        elif (i != len(temp) - 1) and (text.find(temp[i], beg) + len(temp[i]) == text.find(temp[i + 1], beg)) \
                 and not re.search('\d', temp[i]):
 
-            #if re.search('[A-Z][a-z]', ''.join((temp[i] + temp[i + 1]).split())) \
-            #        and not re.search('[a-z]{2}', ''.join((temp[i] + temp[i + 1]).split())):
-                #print(temp[i])
-                # If the new chemical formula overlaps with the old one, then remove the old one
-                #temp2.append(''.join((temp[i] + temp[i + 1]).split()))
             temp2.append(temp[i])
-            beg = text.find(temp[i + 1], beg) #+ len(temp[i+1])
+            beg = text.find(temp[i + 1], beg)  # + len(temp[i+1])
             position = beg
 
+        # If the phrase is a chemical element, add it to temp2
+        elif any(el for el in ELEMENTS if re.findall('(?:\A|\W)' + el + '(?:\W|\Z)', temp[i])) and temp[
+            i] not in NOT_CHEMICALS:
+            temp2.append(temp[i])
+            beg = text.find(temp[i], beg) + len(temp[i])
+
+        # Otherwise, if the phrase is found but does not meet any of the other requirements
         elif text.find(temp[i], beg) != -1:
             beg = text.find(temp[i], beg) + len(temp[i])
 
     # Cleaning up phrases to get relevant results
-
     temp3 = []
+
     for i, t in enumerate(temp2):
 
         # 1. If a closing bracket is not followed by a number, then split the inside and outside of bracket
@@ -107,7 +138,12 @@ def find_chemical(text, sorted_dict='n'):
         if re.findall('\A\d', ''.join(re.findall('[A-Za-z0-9.()]', temp2[i]))):
             continue
 
-        # 3. If the phrase does not contain an element symbol with an uppercase and a lowercase letter,
+        # 3. If the phrase begins with a lowercase x or y, then remove this x or y (due to matching for x or y in
+        #                                                                           subscript)
+        if re.findall('\A[xy]', ''.join(temp2[i].split())):
+            temp2[i] = temp2[i][1:]
+
+        # 4. If the phrase does not contain an element symbol with an uppercase and a lowercase letter,
         #    then ignore it
         if not re.search('[A-Z][a-z]', t):
             continue
@@ -121,18 +157,19 @@ def find_chemical(text, sorted_dict='n'):
         if '(' in t and ')' not in t:
             temp2[i] = temp2[i].replace('(', '')
 
-        if ''.join(re.findall('[A-Za-z0-9.()]', temp2[i])) not in SPLIT_UNITS:
-            temp3.append(''.join(re.findall('[A-Za-z0-9.()]', temp2[i])))
+        if ''.join(re.findall('[A-Za-z0-9.()-+]', temp2[i])) not in NOT_CHEMICALS:
+            temp3.append(''.join(temp2[i].split()))
 
     result = temp3
 
-    if sorted_dict == 'y':
+    if sorted_dict:
         counter = collections.Counter(result)
         sorted_counter = sorted(counter.items(), key=lambda kv: kv[1])
         sorted_dict = collections.OrderedDict(sorted_counter)
         return sorted_dict
     else:
         return result
+
 
 def find_overlap(text, list_1, list_2):
     """
@@ -156,6 +193,7 @@ def find_overlap(text, list_1, list_2):
                 result.remove(a1)
                 continue
     return result
+
 
 def write_chemical_latex(chemical):
     result = ''
@@ -220,8 +258,8 @@ class Material:
         Write to file in current_dir/Materials/__name__/curie_temperature.csv
         """
 
-        columns = ['Compound', 'Extracted Temperature (K)', 'Sentence', 'Title', \
-                   'DOI', 'Author(s)', 'Journal', 'Volume', 'Page', \
+        columns = ['Compound', 'Extracted Temperature (K)', 'Sentence', 'Title',
+                   'DOI', 'Author(s)', 'Journal', 'Volume', 'Page',
                    'Cover Date', 'Access Date']
 
         # if not os.path.exists(os.path.join('Materials', self.write_chemical(), 'curie_temperature.csv'))  #Curie
