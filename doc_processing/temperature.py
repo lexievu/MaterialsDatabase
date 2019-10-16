@@ -10,6 +10,19 @@ Import the file
 >>> import doc_processing.temperature as tmp
 >>> tmp.find_temperature('The Curie temperature of the material is 400 K.')
 OUT: [' 400 K.']
+
+>>> tmp.get_number_from_list(tmp.find_temperature('MnSi orders below T c =29.6K [11] helimagnetically.'))
+OUT: array([29.6])
+
+>>> tmp.get_number_from_list(tmp.find_temperature('Very recently Mn0.75Fe0.25Si (which is higher than the '
+                                                  'critical concentration xcr =0.19 for Fe in MnSi to give '
+                                                  'T c =0K) has been studied in the light of spin fluctuations '
+                                                  'assisted QPT.'))
+OUT: array([0.])
+
+>>> tmp.get_number_from_list(tmp.find_temperature('Si addition decreases Tc by 17K) to that of Tc from 320K for '
+                                                  'x=0 to 318K for x=1 of Mn4FeGe3-x Si x in Ref.'))
+OUT: array([ 17., 320.,   0., 318.])
 """
 
 import collections
